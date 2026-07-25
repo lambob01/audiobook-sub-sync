@@ -5,6 +5,7 @@
   import { createClock } from '$lib/player/clock';
   import { streamUrl } from '$lib/player/audio-engine';
   import { setupMediaSession } from '$lib/player/media-session';
+  import { initProgressSync } from '$lib/player/progress-sync';
   import { get } from 'svelte/store';
   import LyricsPane from '$lib/components/lyrics/LyricsPane.svelte';
   import SubtitleSettings from '$lib/components/subtitles/SubtitleSettings.svelte';
@@ -77,6 +78,8 @@
 
     setupMediaSession();
 
+    const syncCleanup = initProgressSync(data.session.id, data.item.id, data.session.currentTime);
+
     loadSubtitles();
 
     function onKey(e: KeyboardEvent) {
@@ -100,6 +103,7 @@
       document.removeEventListener('keydown', onKey);
       clockCleanup?.();
       hls?.destroy();
+      syncCleanup.destroy();
     };
   });
 
