@@ -1,0 +1,16 @@
+services:
+  syncspeak:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      - SESSION_SECRET=${SESSION_SECRET}
+      - ORIGIN=${ORIGIN:-http://localhost:3000}
+    volumes:
+      - syncspeak-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  syncspeak-data:

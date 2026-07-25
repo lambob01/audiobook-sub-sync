@@ -1,0 +1,39 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-bg: oklch(0.14 0.01 260);
+  --color-surface: oklch(0.19 0.01 260);
+  --color-fg: oklch(0.92 0.01 260);
+  --color-muted: oklch(0.55 0.01 260);
+  --color-accent: oklch(0.68 0.19 260);
+  --color-border: oklch(0.28 0.01 260);
+}
+
+:root {
+  color-scheme: dark;
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+}
+
+.word {
+  color: var(--color-muted);
+  opacity: 0.45;
+}
+
+.word.spoken {
+  color: var(--color-fg);
+  opacity: 1;
+}
+
+.line.past     { opacity: 0.35; }
+.line.future   { opacity: 0.75; }
+.line.active   { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .word {
+    opacity: 0.45;
+  }
+  .word.spoken {
+    opacity: 1;
+  }
+}
