@@ -63,6 +63,10 @@ export function createScrollController(
       showJumpPill.set(false);
     },
 
+    ignoreNext(duration = 350) {
+      ignoreScrollUntil = Date.now() + duration;
+    },
+
     destroy() {
       container.removeEventListener('wheel', onUserIntent);
       container.removeEventListener('touchmove', onUserIntent);

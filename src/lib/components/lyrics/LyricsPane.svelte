@@ -12,14 +12,18 @@
 
   let { track, onSeek }: { track: SubtitleTrack; onSeek: (t: number) => void } = $props();
 
+  const ROW_HEIGHT = 40; // px per cue line
+  const WINDOW = 300;    // cues above and below current
+
   let container: HTMLElement;
   let locator = $state(makeLocator(track));
   let scrollCtrl: ReturnType<typeof createScrollController> | null = null;
   let currentIndex = $state(-1);
   let currentTime = $state(0);
   let suppressLocatorUntil = 0;
+  let windowStart = $state(0);
+  let windowEnd = $state(WINDOW * 2);
 
-  // ponytail: render all cues, let browser handle scroll. Add virtualization when >20k cues causes perf issues.
   onMount(() => {
     scrollCtrl = createScrollController(container, () => get(playerState).rate);
 
@@ -32,8 +36,8 @@
       if (idx !== currentIndex && idx >= 0) {
         currentIndex = idx;
         activeCueIndex.set(idx);
-        const lineEl = container.querySelector(`[data-index="${idx}"]`) as HTMLElement;
-        if (lineEl && scrollCtrl) scrollCtrl.scrollToLine(lineEl);
+        snapWindow(idx);
+        scrollToIdx(idx);
       }
     });
 
@@ -42,10 +46,8 @@
     if (initialIdx >= 0) {
       currentIndex = initialIdx;
       activeCueIndex.set(initialIdx);
-      setTimeout(() => {
-        const lineEl = container.querySelector(`[data-index="${initialIdx}"]`) as HTMLElement;
-        if (lineEl) container.scrollTo({ top: lineEl.offsetTop - container.clientHeight * 0.4 });
-      }, 50);
+      snapWindow(initialIdx);
+      setTimeout(() => { container.scrollTop = initialIdx * ROW_HEIGHT - container.clientHeight * 0.4; }, 50);
     }
 
     return () => {
@@ -54,11 +56,25 @@
     };
   });
 
+  function snapWindow(idx: number) {
+    const mid = Math.floor((windowStart + windowEnd) / 2);
+    if (idx < windowStart + 50 || idx > windowEnd - 50) {
+      windowStart = Math.max(0, idx - WINDOW);
+      windowEnd = Math.min(track.cues.length, idx + WINDOW);
+    }
+  }
+
+  function scrollToIdx(idx: number) {
+    scrollCtrl?.ignoreNext();
+    container.scrollTo({ top: idx * ROW_HEIGHT - container.clientHeight * 0.4, behavior: 'smooth' });
+  }
+
   function handleCueClick(cue: Cue) {
     const idx = currentIndex >= 0 && track.cues[currentIndex]?.i === cue.i
       ? currentIndex : locator(cue.start);
     currentIndex = idx;
     activeCueIndex.set(idx);
+    snapWindow(idx);
     suppressLocatorUntil = Date.now() + 600;
     scrollCtrl?.suppressOnSeek();
     scrollCtrl?.jumpToCurrent();
@@ -69,27 +85,19 @@
     scrollCtrl?.jumpToCurrent();
     const idx = get(activeCueIndex);
     if (idx >= 0) {
-      const lineEl = container.querySelector(`[data-index="${idx}"]`) as HTMLElement;
-      if (lineEl) container.scrollTo({ top: lineEl.offsetTop - container.clientHeight * 0.4, behavior: 'smooth' });
+      container.scrollTo({ top: idx * ROW_HEIGHT - container.clientHeight * 0.4, behavior: 'smooth' });
     }
   }
 
   const adjustedTime = $derived(currentTime - track.offsetMs / 1000);
   const debugActiveCue = $derived(currentIndex >= 0 ? track.cues[currentIndex] : null);
-  const debugWordInfo = $derived(() => {
-    if (!debugActiveCue || !debugActiveCue.words?.length) return '';
-    const firstWord = debugActiveCue.words[0];
-    const lastWord = debugActiveCue.words[debugActiveCue.words.length - 1];
-    const spokenCount = debugActiveCue.words.filter((w: { t: number; d: number; text: string }) => adjustedTime >= w.t).length;
-    return `${spokenCount}/${debugActiveCue.words.length} words spoken | word[0].t=${firstWord.t.toFixed(2)}s | audio at ${adjustedTime.toFixed(2)}s`;
-  });
+  const visibleCues = $derived(track.cues.slice(windowStart, windowEnd));
 </script>
 
 <div class="relative">
   {#if debugActiveCue && currentIndex >= 0}
-    <div class="text-xs text-muted mb-2 space-y-0.5">
-      <div>Time: {adjustedTime.toFixed(1)}s | Cue #{currentIndex}: "{debugActiveCue.text.slice(0, 40)}..." ({debugActiveCue.start.toFixed(1)}–{debugActiveCue.end.toFixed(1)}s)</div>
-      <div>{debugWordInfo()}</div>
+    <div class="text-xs text-muted mb-2">
+      Time: {adjustedTime.toFixed(1)}s | Cue #{currentIndex}: "{debugActiveCue.text.slice(0, 40)}..." ({debugActiveCue.start.toFixed(1)}–{debugActiveCue.end.toFixed(1)}s)
     </div>
   {/if}
   <div
@@ -98,16 +106,20 @@
     role="list"
     aria-live="off"
   >
-    {#each track.cues as cue, i (cue.i)}
-      <div data-index={i}>
+    <!-- pylint spacer top -->
+    <div style="height: {windowStart * ROW_HEIGHT}px"></div>
+    {#each visibleCues as cue (cue.i)}
+      <div data-index={cue.i} style="height: {ROW_HEIGHT}px">
         <LyricsLine
           {cue}
-          state={i < currentIndex ? 'past' : i === currentIndex ? 'active' : 'future'}
+          state={cue.i < currentIndex ? 'past' : cue.i === currentIndex ? 'active' : 'future'}
           onclick={() => handleCueClick(cue)}
-          currentTime={adjustedTime}
+          currentTime={cue.i === currentIndex ? adjustedTime : Number.NEGATIVE_INFINITY}
         />
       </div>
     {/each}
+    <!-- pylint spacer bottom -->
+    <div style="height: {(track.cues.length - windowEnd) * ROW_HEIGHT}px"></div>
   </div>
 
   {#if $showJumpPill}
