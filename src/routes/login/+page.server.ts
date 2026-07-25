@@ -47,7 +47,7 @@ export const actions = {
     const jwt = await seal(sessionData);
     cookies.set('syncspeak_session', jwt, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.HTTPS === 'true',
       sameSite: 'lax',
       path: '/',
       maxAge: 30 * 24 * 60 * 60

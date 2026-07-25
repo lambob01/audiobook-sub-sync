@@ -14,29 +14,37 @@ A web application for playing audiobooks from a self-hosted [Audiobookshelf](htt
 
 | Variable | Required | Description |
 |---|---|---|
-| `SESSION_SECRET` | Yes | 32+ byte secret for encrypting session cookies |
-| `ORIGIN` | No | Public origin for CSRF (default: `http://localhost:3000`) |
+| `SESSION_SECRET` | Yes | 32+ character secret for encrypting session cookies |
+| `ORIGIN` | Yes | Public URL how clients access syncspeak (e.g., `http://192.168.1.100:3000`) |
+| `HTTPS` | No | Set to `true` if using HTTPS reverse proxy, `false` for plain HTTP (default: `false`) |
 
-### Docker
+### Docker (recommended for home server)
 
 ```bash
+cp .env.example .env
+# Edit .env with your values: SESSION_SECRET, ORIGIN (your server's LAN IP)
 cd docker
-SESSION_SECRET=$(openssl rand -base64 32) docker compose up -d
+docker compose up -d
 ```
+
+Access from any device on your network at `http://<your-server-ip>:3000`.
 
 ### Manual
 
 ```bash
 npm ci
 npm run build
-SESSION_SECRET=$(openssl rand -base64 32) node build/index.js
+cp .env.example .env
+# Edit .env with your values
+source .env
+node build/index.js
 ```
 
 ## Architecture
 
 - **Framework**: SvelteKit 2 with `@sveltejs/adapter-node`
 - **Styling**: Tailwind CSS
-- **Audio**: Native `HTMLAudioElement` (no wrappers)
+- **Audio**: Native `HTMLAudioElement` (hls.js for HLS streams)
 - **State**: Svelte stores (`writable`, `derived`)
 - **Auth**: JWE-encrypted session cookie via `jose`
 - **Persistence**: `node:sqlite` + disk blobs for uploaded subtitles
