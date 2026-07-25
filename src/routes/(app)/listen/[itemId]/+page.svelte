@@ -203,6 +203,7 @@
 
   let showChapters = $state(false);
   let showSettings = $state(false);
+  let showMore = $state(false);
 
   let subtitleTrack = $state<SubtitleTrack | null>(null);
   let subtitleCandidates = $state<Array<{ ino: string; filename: string; rank: number }>>([]);
@@ -311,28 +312,26 @@
 
 <SubtitleSettings bind:open={showSettings} />
 
-<div class="fixed bottom-0 left-0 right-0 bg-surface border-t border-border p-4 z-50">
-  <div class="mx-auto max-w-4xl space-y-3">
-    <div class="flex items-center gap-3">
-      <span class="text-xs text-muted w-12 text-right tabular-nums">
-        {formatTime($displayTime)}
-      </span>
+<div class="fixed bottom-0 left-0 right-0 bg-surface border-t border-border px-3 py-2 sm:px-4 sm:py-3 z-50">
+  <div class="mx-auto max-w-4xl space-y-2">
+    <!-- Scrubber row -->
+    <div class="flex items-center gap-2">
+      <span class="text-xs text-muted tabular-nums w-10 text-right">{formatTime($displayTime)}</span>
       <input
         type="range"
         min="0"
         max={duration}
         value={$bookTime}
         onchange={(e) => doSeek(Number(e.currentTarget.value))}
-        class="flex-1 h-1 accent-accent cursor-pointer"
+        class="flex-1 h-2 accent-accent cursor-pointer"
       />
-      <span class="text-xs text-muted w-12 tabular-nums">
-        {formatTime(duration)}
-      </span>
+      <span class="text-xs text-muted tabular-nums w-10">{formatTime(duration)}</span>
     </div>
 
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <button onclick={onPlayPause} class="rounded-full bg-accent p-3 text-bg hover:opacity-90">
+    <!-- Transport row -->
+    <div class="flex items-center justify-between gap-1">
+      <div class="flex items-center gap-1 sm:gap-2">
+        <button onclick={onPlayPause} class="rounded-full bg-accent p-2.5 sm:p-3 text-bg hover:opacity-90 min-w-[44px] min-h-[44px] flex items-center justify-center">
           {#if $playerState.playing}
             <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
           {:else}
@@ -340,74 +339,93 @@
           {/if}
         </button>
 
-        <button onclick={() => doSeek(get(bookTime) - 10)} class="rounded p-2 text-muted hover:text-fg" title="Back 10s">
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.333 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z"/></svg>
+        <button onclick={() => doSeek(get(bookTime) - 10)} class="rounded p-2 text-muted hover:text-fg min-w-[44px] min-h-[44px] flex items-center justify-center" title="Back 10s">
+          <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0019 16V8a1 1 0 00-1.6-.8l-5.333 4zM4.066 11.2a1 1 0 000 1.6l5.334 4A1 1 0 0011 16V8a1 1 0 00-1.6-.8l-5.334 4z"/></svg>
         </button>
-        <button onclick={() => doSeek(get(bookTime) + 10)} class="rounded p-2 text-muted hover:text-fg" title="Forward 10s">
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.933 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.333-4zM19.933 12.8a1 1 0 000-1.6l-5.333-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.333-4z"/></svg>
+        <button onclick={() => doSeek(get(bookTime) + 10)} class="rounded p-2 text-muted hover:text-fg min-w-[44px] min-h-[44px] flex items-center justify-center" title="Forward 10s">
+          <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.933 12.8a1 1 0 000-1.6L6.6 7.2A1 1 0 005 8v8a1 1 0 001.6.8l5.333-4zM19.933 12.8a1 1 0 000-1.6l-5.333-4A1 1 0 0013 8v8a1 1 0 001.6.8l5.333-4z"/></svg>
         </button>
-
-        <div class="flex items-center gap-2 ml-4">
-          <label for="volume" class="text-xs text-muted">{Math.round($playerState.volume * 100)}%</label>
-          <input
-            id="volume"
-            type="range"
-            min="0"
-            max="1"
-            step="0.05"
-            value={$playerState.volume}
-            oninput={(e) => onVolumeChange(Number(e.currentTarget.value))}
-            class="w-20 h-1 accent-accent cursor-pointer"
-          />
-        </div>
       </div>
 
-      <div class="flex items-center gap-2">
+      <!-- Speed on desktop, hidden on mobile unless expanded -->
+      <select
+        value={$playerState.rate}
+        onchange={(e) => onRateChange(Number(e.currentTarget.value))}
+        class="hidden sm:block rounded border border-border bg-bg px-2 py-1 text-xs text-fg"
+      >
+        {#each [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2] as r}
+          <option value={r}>{r}x</option>
+        {/each}
+      </select>
+
+      <div class="flex items-center gap-1">
+        <button
+          onclick={() => showMore = !showMore}
+          class="rounded p-2 text-muted hover:text-fg min-w-[44px] min-h-[44px] flex items-center justify-center"
+          title="More"
+        >
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01"/></svg>
+        </button>
+        <button
+          onclick={() => showSettings = !showSettings}
+          class="rounded p-2 text-muted hover:text-fg min-w-[44px] min-h-[44px] flex items-center justify-center"
+          title="Subtitle settings"
+        >
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    {#if showMore}
+      <div class="flex items-center gap-3 py-1 border-t border-border">
+        <span class="text-xs text-muted">Speed:</span>
         <select
           value={$playerState.rate}
           onchange={(e) => onRateChange(Number(e.currentTarget.value))}
-          class="rounded border border-border bg-bg px-2 py-1 text-xs text-fg"
+          class="rounded border border-border bg-bg px-2 py-1 text-sm text-fg"
         >
           {#each [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2] as r}
             <option value={r}>{r}x</option>
           {/each}
         </select>
 
-        <button
-          onclick={() => showChapters = !showChapters}
-          class="rounded p-2 text-muted hover:text-fg text-sm"
-        >
-          Chapters
-        </button>
+        <span class="text-xs text-muted ml-2">Vol:</span>
+        <input
+          type="range"
+          min="0" max="1" step="0.05"
+          value={$playerState.volume}
+          oninput={(e) => onVolumeChange(Number(e.currentTarget.value))}
+          class="w-24 h-2 accent-accent cursor-pointer"
+        />
+        <span class="text-xs text-muted">{Math.round($playerState.volume * 100)}%</span>
 
         <button
-          onclick={() => showSettings = !showSettings}
-          class="rounded p-2 text-muted hover:text-fg text-sm"
-          title="Subtitle settings"
-        >
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        </button>
+          onclick={() => { showChapters = !showChapters; showMore = false; }}
+          class="rounded bg-bg border border-border px-2 py-1 text-xs text-fg hover:border-accent ml-auto"
+        >Chapters</button>
+
+        <button
+          onclick={() => { doSeek(get(bookTime)); }}
+          class="rounded border border-border bg-bg px-2 py-0.5 text-xs text-muted hover:text-fg"
+        >Jump to start</button>
       </div>
-    </div>
+    {/if}
 
     {#if showChapters}
-      <div class="max-h-48 overflow-y-auto rounded border border-border bg-bg p-2">
+      <div class="max-h-40 overflow-y-auto rounded border border-border bg-bg p-2">
         {#each chapters as ch}
           <button
             onclick={() => { doSeek(ch.start); showChapters = false; }}
-            class="w-full text-left px-3 py-1.5 rounded text-sm hover:bg-surface text-fg"
+            class="w-full text-left px-3 py-2 rounded text-sm hover:bg-surface text-fg"
             class:bg-surface={$bookTime >= ch.start && $bookTime < ch.end}
-          >
-            {ch.title}
-            <span class="text-xs text-muted ml-2">{formatTime(ch.start)}</span>
-          </button>
+          >{ch.title}<span class="text-xs text-muted ml-2">{formatTime(ch.start)}</span></button>
         {/each}
       </div>
     {/if}
   </div>
 </div>
 
-<div class="pb-32 px-4 pt-6 max-w-4xl mx-auto">
+<div class="pb-36 sm:pb-32 px-4 pt-6 max-w-4xl mx-auto">
   <a href="/book/{data.item.id}" class="text-sm text-muted hover:text-fg">&larr; Book Details</a>
   <h1 class="text-xl font-bold mt-2">{data.item.title}</h1>
   {#if data.item.author}

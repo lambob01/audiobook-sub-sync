@@ -24,7 +24,7 @@
   bind:this={el}
   type="button"
   onclick={handleClick}
-  class="line w-full text-left px-4 py-1.5 transition-opacity duration-200"
+  class="line w-full text-left px-2 sm:px-4 py-1 sm:py-1.5 transition-opacity duration-200"
   class:past={state === 'past'}
   class:active={state === 'active'}
   class:future={state === 'future'}

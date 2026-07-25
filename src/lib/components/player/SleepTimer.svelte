@@ -14,7 +14,7 @@
 <div class="relative">
   <button
     onclick={() => open = !open}
-    class="rounded p-2 text-muted hover:text-fg text-sm"
+    class="rounded p-2 text-muted hover:text-fg text-sm min-w-[44px] min-h-[44px] flex items-center justify-center"
     title="Sleep timer"
   >
     {#if $sleepTimer}

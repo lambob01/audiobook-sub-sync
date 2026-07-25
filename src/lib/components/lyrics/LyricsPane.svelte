@@ -94,7 +94,7 @@
   {/if}
   <div
     bind:this={container}
-    class="overflow-y-auto max-h-[60vh] rounded-lg bg-bg/50"
+    class="overflow-y-auto max-h-[40vh] sm:max-h-[60vh] rounded-lg bg-bg/50"
     role="list"
     aria-live="off"
   >

@@ -15,7 +15,7 @@
 {#if open}
   <div class="fixed inset-0 z-50 flex justify-end">
     <button class="absolute inset-0 bg-black/40 border-none cursor-pointer" onclick={close} aria-label="Close settings"></button>
-    <div class="relative w-80 max-w-full bg-surface border-l border-border p-6 overflow-y-auto space-y-5">
+    <div class="relative w-full sm:w-80 max-w-full bg-surface border-l border-border p-6 overflow-y-auto space-y-5">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-semibold">Subtitle Settings</h2>
         <button onclick={close} class="text-muted hover:text-fg text-lg leading-none">&times;</button>
@@ -26,7 +26,7 @@
         <input
           type="range" min="12" max="28" step="1" value={prefs.fontSize}
           oninput={(e) => { prefs.fontSize = Number(e.currentTarget.value); save(); }}
-          class="w-full h-1 accent-accent cursor-pointer mt-1"
+          class="w-full h-3 sm:h-1 accent-accent cursor-pointer mt-1"
         />
       </label>
 
@@ -35,7 +35,7 @@
         <input
           type="range" min="1" max="2.5" step="0.1" value={prefs.lineHeight}
           oninput={(e) => { prefs.lineHeight = Number(e.currentTarget.value); save(); }}
-          class="w-full h-1 accent-accent cursor-pointer mt-1"
+          class="w-full h-3 sm:h-1 accent-accent cursor-pointer mt-1"
         />
       </label>
 
@@ -44,7 +44,7 @@
         <input
           type="range" min="400" max="800" step="100" value={prefs.activeWeight}
           oninput={(e) => { prefs.activeWeight = Number(e.currentTarget.value); save(); }}
-          class="w-full h-1 accent-accent cursor-pointer mt-1"
+          class="w-full h-3 sm:h-1 accent-accent cursor-pointer mt-1"
         />
       </label>
 
@@ -53,7 +53,7 @@
         <input
           type="range" min="0" max="0.5" step="0.05" value={prefs.wordGap}
           oninput={(e) => { prefs.wordGap = Number(e.currentTarget.value); save(); }}
-          class="w-full h-1 accent-accent cursor-pointer mt-1"
+          class="w-full h-3 sm:h-1 accent-accent cursor-pointer mt-1"
         />
       </label>
 
